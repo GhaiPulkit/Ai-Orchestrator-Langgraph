@@ -1,0 +1,77 @@
+# Sample GraphQL schema used to auto-generate orchestrator tools.
+# Swap GRAPHQL_SCHEMA_PATH in your .env to point at your own SDL.
+
+enum Role {
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  CANCELLED
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  role: Role!
+  orders: [Order!]!
+}
+
+type Product {
+  id: ID!
+  name: String!
+  priceCents: Int!
+  inStock: Boolean!
+}
+
+type OrderLine {
+  product: Product!
+  quantity: Int!
+}
+
+type Order {
+  id: ID!
+  status: OrderStatus!
+  total: Int!
+  lines: [OrderLine!]!
+  customer: User!
+}
+
+input OrderLineInput {
+  productId: ID!
+  quantity: Int!
+}
+
+input CreateOrderInput {
+  customerId: ID!
+  lines: [OrderLineInput!]!
+}
+
+type Query {
+  "Fetch a single user by id."
+  user(id: ID!): User
+  "List users, optionally filtered by role."
+  users(role: Role, limit: Int): [User!]!
+  "Fetch a single product by id."
+  product(id: ID!): Product
+  "Search products by name substring."
+  products(search: String, inStockOnly: Boolean): [Product!]!
+  "Fetch a single order by id."
+  order(id: ID!): Order
+  "List orders, optionally filtered by status."
+  orders(status: OrderStatus, limit: Int): [Order!]!
+}
+
+type Mutation {
+  "Create a new order for a customer."
+  createOrder(input: CreateOrderInput!): Order!
+  "Update the status of an existing order."
+  updateOrderStatus(id: ID!, status: OrderStatus!): Order!
+  "Update a user's role."
+  setUserRole(id: ID!, role: Role!): User!
+}

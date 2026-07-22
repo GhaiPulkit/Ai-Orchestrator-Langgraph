@@ -1,0 +1,10 @@
+langgraph>=0.2.60
+langchain>=0.3.0
+langchain-core>=0.3.30
+langchain-aws>=0.2.10
+langfuse>=3.0.0
+graphql-core>=3.2.3
+requests>=2.31.0
+python-dotenv>=1.0.1
+fastapi>=0.110.0
+uvicorn>=0.27.0

@@ -1,0 +1,39 @@
+# LangGraph AI Orchestrator — Docker Compose
+#
+#   docker compose up -d          # starts the HTTP server on :8000
+#
+# Prompt it:
+#   - Browser:  http://localhost:8000/docs  (Swagger — POST /prompt)
+#   - curl:     curl -s localhost:8000/prompt -H 'content-type: application/json' \
+#                    -d '{"prompt":"list bank categories"}'
+#   - CLI:      docker compose exec orchestrator python -m langgraph_orchestrator "list bank categories"
+#
+# Config comes from .env (copy .env.example -> .env first). Claude runs on AWS
+# Bedrock, so the container needs AWS credentials (in .env or your shell).
+# Traces go to Langfuse when LANGFUSE_* keys are set.
+services:
+  orchestrator:
+    build: .
+    image: ai-orchestrator-langgraph
+    # Override the image's CLI entrypoint and run the web server instead.
+    entrypoint: ["python", "-m", "langgraph_orchestrator.server"]
+    env_file:
+      - .env
+    environment:
+      # Pass AWS creds through from the host shell if they're not in .env.
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      # Server binds here inside the container.
+      - HOST=0.0.0.0
+      - PORT=8000
+    ports:
+      - "8001:8000"   # host:container — 8001 avoids clashing with the original project on 8000
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
